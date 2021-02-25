@@ -6,8 +6,6 @@ import shutil
 import setting as st
 
 
-
-
 # 绝对路径拆分成歌名和作者
 def splite_filename(list: list) -> list:
     final_list = []
@@ -108,7 +106,7 @@ def write_json(filename, test: dict or list, issong: bool = False):  # 不用带
         filename = st.path_song + '/' + filename + '.json'
     else:
         filename = st.path_json + '/' + filename + '.json'
-    with open(filename.replace('|',''), 'w', encoding='utf-8') as f:
+    with open(filename.replace('|', ''), 'w', encoding='utf-8') as f:
         json.dump(test, f)
 
 
@@ -135,11 +133,5 @@ def trans_vedio(filename, filter='.mp3'):
         st.set_confi('path_section', 'jmexe', '-1')
     return False
 
-def ini():
-    if len(st.conf.get('path_section','jmexe')) == 0:
-        l = search_one('ffmpeg.exe')
-        st.set_confi('path_section', 'jmexe', ','.join(l))
-    else:
-        if st.conf.get('path_section', 'jmexe') == '-1':
-            print('当前电脑配置无解码工具，仅支持.MP3和.WAV文件播放')
-ini()
+
+

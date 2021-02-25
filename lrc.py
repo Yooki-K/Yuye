@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import *
 import re
 import setting as st
 
+
 def setPix(this: QtWidgets.QWidget, url):
     pal = this.palette()
     pal.setBrush(this.backgroundRole(), QtGui.QBrush(QtGui.QPixmap(url)))
@@ -72,13 +73,13 @@ class MC:
 class Lrc(QtWidgets.QFrame):
     sendnext = QtCore.pyqtSignal(int)
 
-
     def __init__(self):
         super().__init__()
         self.bjs = st.conf.get('lrc_section', 'bjs')
         self.fc1 = st.conf.get('lrc_section', 'fc1')
         self.fc2 = st.conf.get('lrc_section', 'fc2')
         self.ml = False
+        self.playing = False
         self.lrc = []
         self.setupUi(self)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
@@ -96,49 +97,43 @@ class Lrc(QtWidgets.QFrame):
         self.verticalLayout_2.setSizeConstraint(QtWidgets.QLayout.SetDefaultConstraint)
         self.verticalLayout_2.setContentsMargins(2, 2, 2, 2)
         self.verticalLayout_2.setObjectName("verticalLayout_2")
-
         self.tableWidget = QtWidgets.QTableWidget(self)
-        self.tableWidget.setMaximumSize(QtCore.QSize(16777215, 40))
+        self.tableWidget.setMaximumSize(QtCore.QSize(50, 40))
         self.tableWidget.setLayoutDirection(QtCore.Qt.LeftToRight)
         self.tableWidget.setAutoFillBackground(False)
         self.tableWidget.setStyleSheet("QTableWidget::Item{max-width:20px}\n"
                                        "QTableWidget::Item:hover,QTableWidget::Item:selected {\n"
-                                       "    background-color:rgb(135, 135, 135)\n"
-                                       "}\n"
+                                       "background-color:rgb(135, 135, 135)\n}\n"
                                        "QTableWidget::Item{border:0px solid rgb(255,0,0);}\n"
                                        "QScrollBar{background-color:white; height:10px; }\n"
-                                       "QScrollBar::handle{background:lightgray; border:2px solid transparent; border-radius:5px; }\n"
+                                       "QScrollBar::handle{background:lightgray; border:2px solid transparent; "
+                                       "border-radius:5px; }\n "
                                        "QScrollBar::handle:hover{background:gray; }\n"
                                        "QScrollBar::sub-line{background:transparent;}\n"
                                        "QScrollBar::add-line{background:transparent;}"
                                        "QTableWidget{background-color:rgb(135, 135, 135)}")
         self.tableWidget.setMidLineWidth(0)
+        self.tableWidget.setFocusPolicy(QtCore.Qt.NoFocus)
         self.tableWidget.setSizeAdjustPolicy(QtWidgets.QAbstractScrollArea.AdjustToContentsOnFirstShow)
         self.tableWidget.setShowGrid(False)
-        # self.setFrameShape(QtWidgets.QFrame.Panel)
         self.tableWidget.setGridStyle(QtCore.Qt.SolidLine)
         self.tableWidget.setColumnCount(7)
         self.tableWidget.setObjectName("tableWidget")
         self.tableWidget.setRowCount(1)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setVerticalHeaderItem(0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setItem(0, 0, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setItem(0, 1, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setItem(0, 2, item)
+        self.tableWidget.setItem(0, 0, QTableWidgetItem(QtGui.QIcon('resource/Previous.png'), ''))
+        self.tableWidget.setItem(0, 1, QTableWidgetItem(QtGui.QIcon('resource/play1.png'), ''))
+        self.tableWidget.setItem(0, 2, QTableWidgetItem(QtGui.QIcon('resource/Next.png'), ''))
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setItem(0, 3, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setItem(0, 4, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setItem(0, 5, item)
-        item = QtWidgets.QTableWidgetItem()
-        self.tableWidget.setItem(0, 6, item)
+        self.tableWidget.setItem(0, 5, QTableWidgetItem(QtGui.QIcon('resource/set1.png'), ''))
+        self.tableWidget.setItem(0, 6, QTableWidgetItem(QtGui.QIcon('resource/close.png'), ''))
         self.tableWidget.horizontalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(False)
-        self.tableWidget.horizontalHeader().setDefaultSectionSize(70)
+        self.tableWidget.horizontalHeader().setDefaultSectionSize(20)
         self.tableWidget.horizontalHeader().setHighlightSections(False)
         self.tableWidget.verticalHeader().setVisible(False)
         self.tableWidget.verticalHeader().setCascadingSectionResizes(True)
@@ -173,11 +168,11 @@ class Lrc(QtWidgets.QFrame):
         if f is not None:
             self.label.setFont(f)
             self.label_2.setFont(f)
-        self.tableWidget.setStyleSheet("QTableWidget{background-color:rgb(43, 43, 43,0);border:0px solid white;color:white}")
+        self.tableWidget.setStyleSheet(
+            "QTableWidget{background-color:rgb(43, 43, 43,0);border:0px solid white;color:white}")
         self.w.hide()
-        # self.tableWidget.horizontalHeader().setSectionResizeMode(QtWidgets.QHeaderView.Stretch)
-        self.tableWidget.setMaximumWidth(500)
-        self.tableWidget.setMinimumWidth(500)
+        self.tableWidget.setMaximumWidth(220)
+        self.tableWidget.setMinimumWidth(220)
         self.tableWidget.setMinimumHeight(45)
         self.setGeometry((QtWidgets.QDesktopWidget().screenGeometry().width() - self.width()) / 2,
                          (QtWidgets.QDesktopWidget().screenGeometry().height() - self.height()) / 2,
@@ -191,9 +186,9 @@ class Lrc(QtWidgets.QFrame):
         self.lrc.clear()
         _translate = QtCore.QCoreApplication.translate
         self.label.setText(
-            _translate("Form", "<html><head/><body><p align=\"center\">Yuye</p></body></html>" ))
+            _translate("Form", "<html><head/><body><p align=\"center\">Yuye</p></body></html>"))
         self.label_2.setText(
-            _translate("Form", "<html><head/><body><p align=\"center\"></p></body></html>" ))
+            _translate("Form", "<html><head/><body><p align=\"center\"></p></body></html>"))
 
     def setFixedSize_my(self, a0: QtCore.QSize) -> None:
         if self.label.pos().y() < 42 or a0.width() < 350:
@@ -213,20 +208,12 @@ class Lrc(QtWidgets.QFrame):
         item.setText(_translate("Form", "新建行"))
         __sortingEnabled = self.tableWidget.isSortingEnabled()
         self.tableWidget.setSortingEnabled(False)
-        item = self.tableWidget.item(0, 0)
-        item.setText(_translate("Form", "上一首"))
-        item = self.tableWidget.item(0, 1)
-        item.setText(_translate("Form", "播放"))
-        item = self.tableWidget.item(0, 2)
-        item.setText(_translate("Form", "下一首"))
         item = self.tableWidget.item(0, 3)
         item.setText(_translate("Form", "-"))
+        item.setFont(QtGui.QFont('微软雅黑', 20, 75))
         item = self.tableWidget.item(0, 4)
         item.setText(_translate("Form", "+"))
-        item = self.tableWidget.item(0, 5)
-        item.setText(_translate("Form", "设置"))
-        item = self.tableWidget.item(0, 6)
-        item.setText(_translate("Form", "关闭"))
+        item.setFont(QtGui.QFont('微软雅黑', 20, 75))
         self.tableWidget.setSortingEnabled(__sortingEnabled)
 
     def settext(self, index):
@@ -236,6 +223,13 @@ class Lrc(QtWidgets.QFrame):
         if index + 1 < len(self.lrc):
             self.label_2.setText(
                 _translate("Form", "<html><head/><body><p align=\"center\">%s</p></body></html>" % self.lrc[index + 1]))
+
+    def changestate(self):
+        self.playing = not self.playing
+        if self.playing:
+            self.tableWidget.item(0, 1).setIcon(QtGui.QIcon('resource/pause1.png'))
+        else:
+            self.tableWidget.item(0, 1).setIcon(QtGui.QIcon('resource/play1.png'))
 
     def tc(self, item: QtWidgets.QTableWidgetItem):
         y = item.column()
@@ -371,5 +365,5 @@ class Lrc(QtWidgets.QFrame):
         try:
             if not self.set.isHidden():
                 self.set.close()
-        except :
+        except:
             pass
