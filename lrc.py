@@ -84,7 +84,7 @@ class Lrc(QtWidgets.QFrame):
         self.setupUi(self)
         self.setWindowFlag(QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowFlag(QtCore.Qt.FramelessWindowHint)
-        self.setWindowIcon(QtGui.QIcon('resource/Yuyeicon.ico'))
+        self.setWindowIcon(QtGui.QIcon('resource/图片/Yuyeicon.ico'))
         self.show()
 
     def setupUi(self, Form):
@@ -122,15 +122,15 @@ class Lrc(QtWidgets.QFrame):
         self.tableWidget.setRowCount(1)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setVerticalHeaderItem(0, item)
-        self.tableWidget.setItem(0, 0, QTableWidgetItem(QtGui.QIcon('resource/Previous.png'), ''))
-        self.tableWidget.setItem(0, 1, QTableWidgetItem(QtGui.QIcon('resource/play1.png'), ''))
-        self.tableWidget.setItem(0, 2, QTableWidgetItem(QtGui.QIcon('resource/Next.png'), ''))
+        self.tableWidget.setItem(0, 0, QTableWidgetItem(QtGui.QIcon('resource/图片/Previous.png'), ''))
+        self.tableWidget.setItem(0, 1, QTableWidgetItem(QtGui.QIcon('resource/图片/play1.png'), ''))
+        self.tableWidget.setItem(0, 2, QTableWidgetItem(QtGui.QIcon('resource/图片/Next.png'), ''))
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setItem(0, 3, item)
         item = QtWidgets.QTableWidgetItem()
         self.tableWidget.setItem(0, 4, item)
-        self.tableWidget.setItem(0, 5, QTableWidgetItem(QtGui.QIcon('resource/set1.png'), ''))
-        self.tableWidget.setItem(0, 6, QTableWidgetItem(QtGui.QIcon('resource/close.png'), ''))
+        self.tableWidget.setItem(0, 5, QTableWidgetItem(QtGui.QIcon('resource/图片/set1.png'), ''))
+        self.tableWidget.setItem(0, 6, QTableWidgetItem(QtGui.QIcon('resource/图片/close.png'), ''))
         self.tableWidget.horizontalHeader().setVisible(False)
         self.tableWidget.horizontalHeader().setCascadingSectionResizes(False)
         self.tableWidget.horizontalHeader().setDefaultSectionSize(20)
@@ -164,7 +164,7 @@ class Lrc(QtWidgets.QFrame):
         self.label.installEventFilter(self)
         self.label_2.installEventFilter(self)
         self.installEventFilter(self)
-        f = Lrc.onLoadFont('resource/淘气黑体.ttf', 20, 75)
+        f = Lrc.onLoadFont('resource/字体和音乐/淘气黑体.ttf', 20, 75)
         if f is not None:
             self.label.setFont(f)
             self.label_2.setFont(f)
@@ -210,9 +210,11 @@ class Lrc(QtWidgets.QFrame):
         self.tableWidget.setSortingEnabled(False)
         item = self.tableWidget.item(0, 3)
         item.setText(_translate("Form", "-"))
+        item.setToolTip('缩小字体')
         item.setFont(QtGui.QFont('微软雅黑', 20, 75))
         item = self.tableWidget.item(0, 4)
         item.setText(_translate("Form", "+"))
+        item.setToolTip('放大字体')
         item.setFont(QtGui.QFont('微软雅黑', 20, 75))
         self.tableWidget.setSortingEnabled(__sortingEnabled)
 
@@ -227,9 +229,9 @@ class Lrc(QtWidgets.QFrame):
     def changestate(self):
         self.playing = not self.playing
         if self.playing:
-            self.tableWidget.item(0, 1).setIcon(QtGui.QIcon('resource/pause1.png'))
+            self.tableWidget.item(0, 1).setIcon(QtGui.QIcon('resource/图片/pause1.png'))
         else:
-            self.tableWidget.item(0, 1).setIcon(QtGui.QIcon('resource/play1.png'))
+            self.tableWidget.item(0, 1).setIcon(QtGui.QIcon('resource/图片/play1.png'))
 
     def tc(self, item: QtWidgets.QTableWidgetItem):
         y = item.column()

@@ -1,9 +1,9 @@
 import configparser as cf
 import os
-conf_path = 'setting.cfg'
+conf_path = 'resource/文件/setting.cfg'
 conf = cf.ConfigParser()
 conf.read(conf_path)
-# pyinstaller -w Yuye.py Main.py get_music.py local_file_search.py lrc.py setting.py -i D:\mixed_file\daima\Python\Yuye_Music\resource\Yuyeicon.ico
+# pyinstaller -w Yuye.py Main.py get_music.py local_file_search.py lrc.py setting.py -i resource\图片\Yuyeicon.ico
 
 def set_confi(sectionname, optionname, value):
     conf.set(sectionname, optionname, value)

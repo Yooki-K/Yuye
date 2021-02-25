@@ -1,7 +1,7 @@
 import json
 import os
 import re
-import shutil
+import shutil,subprocess
 
 import setting as st
 
@@ -123,15 +123,15 @@ def read_json(filename, issong: bool = False) -> list:  # 不用带后缀名
 # ffmpeg转码音频文件
 def trans_vedio(filename, filter='.mp3'):
     jmexe = st.conf.get('path_section', 'jmexe')
-    if len(jmexe) != 0:
-        for x in jmexe.split(','):
-            a = os.system('%s -i \"%s\" \"%s\"' % (x, filename, os.path.splitext(filename)[0] + filter))
-            if a == 0:
-                delete_file(filename)
-                st.set_confi('path_section', 'jmexe', x)
-                return os.path.splitext(filename)[0] + filter
-        st.set_confi('path_section', 'jmexe', '-1')
-    return False
+    p = subprocess.Popen('%s -i \"%s\" \"%s\"' % (jmexe, filename, os.path.splitext(filename)[0] + filter), shell=True)
+    p.wait()
+    if p.returncode == 0:
+        delete_file(filename)
+        st.set_confi('path_section', 'jmexe', jmexe)
+        return os.path.splitext(filename)[0] + filter
+    else:
+        st.set_confi('path_section', 'jmexe', 'None')
+        return False
 
 
 
