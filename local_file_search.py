@@ -1,7 +1,7 @@
 import json
 import os
 import re
-import shutil,subprocess
+import shutil, subprocess
 
 import setting as st
 
@@ -132,6 +132,3 @@ def trans_vedio(filename, filter='.mp3'):
     else:
         st.set_confi('path_section', 'jmexe', 'None')
         return False
-
-
-
