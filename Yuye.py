@@ -11,6 +11,7 @@ import threading
 import winsound
 from enum import Enum
 
+
 from PyQt5 import QtCore, QtGui
 from PyQt5.QtCore import QUrl, QObject
 from PyQt5.QtMultimedia import QMediaPlayer, QMediaContent
@@ -19,7 +20,6 @@ import get_music as gm
 import local_file_search as fs
 from lrc import Lrc, Ui_pop
 from get_music import re, random
-
 
 
 class Y(Enum):
@@ -491,6 +491,7 @@ class player(QObject):
 
     # 播放
     def myplay(self):
+        print(self.player_list)
         if self.isstop:
             self.isstop = False
         self.lrc = {}  # 当前歌词
@@ -515,7 +516,8 @@ class player(QObject):
             if h:
                 song_url = h
             else:
-                Ui_mesbox('解码失败')
+                # Ui_mesbox('解码失败')
+                QMessageBox.critical(None, '错误', '解码失败', QMessageBox.Yes)
                 return
         self.player.setMedia(QMediaContent(QUrl.fromLocalFile(song_url)))
         self.player_list[self.player_index]['song'] = song_url
@@ -605,7 +607,7 @@ class player(QObject):
 
     # 改变播放下标
     def change_player_index(self, type: int):
-        if type == 0 and self.player_mode == 2:
+        if type != 0 and self.player_mode == 2:
             self.player_index = random.randint(0, len(self.player_list) - 1)
             self.myplay()
             return
@@ -653,6 +655,8 @@ class Ui_Widget(QWidget):
         self.right_main = None  # todo 主面板右键
         self.setupUi()
         self.pix_show.setPixmap(QtGui.QPixmap("resource/图片/pix.png"))
+        if not gm.st.isHook:
+            self.printt("当前未联网")
 
     def setupUi(self):
         self.setObjectName("Yuye")
@@ -1161,7 +1165,7 @@ class Ui_Widget(QWidget):
         self.statusbar.setStyleSheet('color:%s;font-family:楷体;font-size:16px;' % FC)
         self.setWindowIcon(QtGui.QIcon('resource/图片/Yuyeicon.ico'))
         self.lrc_map.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOff)
-        self.lrc_map.setStyleSheet("border-image:url(resource/图片/3.png)")
+        self.lrc_map.setStyleSheet("font-weight: bold;border-image:url(resource/图片/3.png)")
         self.search_list.setToolTip('下滑，加载更多')
         self.playbutton.setStyleSheet("QToolButton{border-image:url(resource/图片/null.png)}")
         self.next.setStyleSheet("QToolButton{border-image:url(resource/图片/Next.png)}")
@@ -1290,17 +1294,19 @@ class Ui_Widget(QWidget):
                     else:
                         self.player.player_index = self.player.add_player_list(
                             [[mes[0], mes[1], 1, re[0], re[1], mes[2], mes[3], mes[4]]])
+                        gm.updateInfo(re[0], mes)
                 else:  # 不在播放列表，在缓存
                     self.player.player_index = self.player.add_player_list(
-                        [[mes[0], mes[1], 1, result, result.replace('.mp3', '歌词.lrc'), mes[2], mes[3], mes[4]]])
+                        [[mes[0], mes[1], 1, result, result.replace('.mp3', '.lrc'), mes[2], mes[3], mes[4]]])
             else:
                 self.player.player_index = isin
-                if self.player.player_list[self.player.player_index]['type'] == -1:  # 在播放列表，不在缓存
+                if not result:  # 在播放列表，不在缓存
                     re = gm.temp_song(mes[0] + '-' + mes[1], [mes[2], mes[3]])
                     if re:
                         self.player.player_list[self.player.player_index]['type'] = 1
                         self.player.player_list[self.player.player_index]['song'] = re[0]
                         self.player.player_list[self.player.player_index]['lrc'] = re[1]
+                        gm.updateInfo(re[0], mes)
                     else:
                         return False
             self.player.myplay()
@@ -1330,10 +1336,10 @@ class Ui_Widget(QWidget):
                 name_list = fs.splite_filename(local_list)
                 need_list = []
                 for i in range(0, len(local_list)):
-                    if fs.os.path.exists(fs.os.path.splitext(local_list[i])[0] + '歌词.lrc'):
+                    if fs.os.path.exists(fs.os.path.splitext(local_list[i])[0] + '.lrc'):
                         need_list.append(
                             [name_list[i][0], name_list[i][1], 1, local_list[i], fs.os.path.splitext(local_list[i])[0]
-                             + '歌词.lrc'])
+                             + '.lrc'])
                     else:
                         need_list.append([name_list[i][0], name_list[i][1], 1, local_list[i]])
                 self.player.add_player_list(need_list)
@@ -1405,7 +1411,7 @@ class Ui_Widget(QWidget):
             lll = []
             for i in range(0, len(l)):
                 s = fs.os.path.split(l[i])
-                result = fs.judge_file(fs.os.path.splitext(s[1])[0] + '歌词', s[0])
+                result = fs.judge_file(fs.os.path.splitext(s[1])[0] + '.lrc', s[0])
                 if result:
                     lll.append([ll[i][0], ll[i][1], 1, l[i], result])
                 else:
@@ -1434,10 +1440,10 @@ class Ui_Widget(QWidget):
                 name_list = fs.splite_filename(list)
                 need_list = []
                 for i in range(0, len(list)):
-                    if fs.os.path.exists(fs.os.path.splitext(list[i])[0] + '歌词.lrc'):
+                    if fs.os.path.exists(fs.os.path.splitext(list[i])[0] + '.lrc'):
                         need_list.append(
                             [name_list[i][0], name_list[i][1], 1, list[i], fs.os.path.splitext(list[i])[0]
-                             + '歌词.lrc'])
+                             + '.lrc'])
                     else:
                         need_list.append([name_list[i][0], name_list[i][1], 1, list[i]])
                 self.player.add_player_list(need_list)
@@ -1467,16 +1473,17 @@ class Ui_Widget(QWidget):
             if name == 'search_list':
                 if y == 2:  # 播放
                     if not self.play_song_search(x):
-                        self.mes = Ui_mesbox('无法播放')
+                        # self.mes = Ui_mesbox('无法播放')
                         self.printt('无法播放')
                     pass
                 if y == 3:  # 下载
                     if not self.handle.down_song(x):
-                        self.mes=Ui_mesbox('无法下载')
+                        # self.mes=Ui_mesbox('无法下载')
                         self.printt('无法下载')
                     else:
-                        self.mes=Ui_mesbox('下载成功')
-                        self.printt('%s-%s下载成功'%(item.tableWidget().item(x,0),item.tableWidget().item(x,1)))
+                        # self.mes=Ui_mesbox('下载成功')
+                        self.printt(
+                            '%s-%s下载成功' % (item.tableWidget().item(x, 0).text(), item.tableWidget().item(x, 1).text()))
                     pass
                 if y == 4:
                     p = self.cursor().pos()
@@ -1487,7 +1494,7 @@ class Ui_Widget(QWidget):
             if name == 'local_table':
                 if y == 2:  # 播放
                     if not self.play_song_local(x):
-                        self.mes = Ui_mesbox('无法播放')
+                        # self.mes = Ui_mesbox('无法播放')
                         self.printt('无法播放')
                     pass
                 if y == 3:  # 删除
@@ -1499,7 +1506,7 @@ class Ui_Widget(QWidget):
                         fs.delete_file(
                             gm.st.path + '/' + item.tableWidget().item(item.row(),
                                                                        0).text() + '-' + item.tableWidget().item(
-                                item.row(), 1).text() + '歌词.lrc')
+                                item.row(), 1).text() + '.lrc')
                         fs.delete_file(
                             gm.st.path + '/' + item.tableWidget().item(item.row(),
                                                                        0).text() + '-' + item.tableWidget().item(
@@ -1507,14 +1514,14 @@ class Ui_Widget(QWidget):
                     item.tableWidget().removeRow(x)
                     if self.player.list_type == Y.LOCAL:
                         self.player.player_list.pop(x)
-                    self.mes = Ui_mesbox('删除成功')
+                    # self.mes = Ui_mesbox('删除成功')
                     self.printt('%s-%s 删除成功'%(item.tableWidget().item(x,0),item.tableWidget().item(x,1)))
                     pass
                 return
             if name == 'play_list':
                 if y == 2:  # 播放
                     if not self.play_song_play(x):
-                        self.mes=Ui_mesbox('无法播放')
+                        # self.mes=Ui_mesbox('无法播放')
                         self.printt('无法播放')
                     pass
                 if y == 3:  # 下载
@@ -1523,7 +1530,8 @@ class Ui_Widget(QWidget):
                     pass
                 if y == 4:
                     if self.player.list_type == Y.LOCAL:
-                        self.mes=Ui_mesbox('本地音乐，无法添加至歌单')
+                        # self.mes=Ui_mesbox('本地音乐，无法添加至歌单')
+                        self.printt('本地音乐，无法添加至歌单')
                         pass
                     pass
                 if y == 5:  # 删除
@@ -1531,22 +1539,23 @@ class Ui_Widget(QWidget):
                         self.player.stop()
                     item.tableWidget().removeRow(x)
                     self.player.player_list.pop(x)
-                    self.mes=Ui_mesbox('删除成功')
+                    # self.mes=Ui_mesbox('删除成功')
                     self.printt('%s-%s 删除成功'%(item.tableWidget().item(x,0),item.tableWidget().item(x,1)))
                 return
             if name == 'gdsong_list':
                 if y == 2:  # 播放
                     if not self.play_song_gd(x):
-                        self.mes = Ui_mesbox('无法播放')
+                        # self.mes = Ui_mesbox('无法播放')
                         self.printt('无法播放')
                     pass
                 if y == 3:  # 下载
                     if not self.handle.down_song(x):
-                        self.mes = Ui_mesbox('无法下载')
+                        # self.mes = Ui_mesbox('无法下载')
                         self.printt('无法下载')
                     else:
                         self.mes = Ui_mesbox('下载成功')
-                        self.printt('%s-%s下载成功'%(item.tableWidget().item(x,0),item.tableWidget().item(x,1)))
+                        self.printt(
+                            '%s-%s下载成功' % (item.tableWidget().item(x, 0).text(), item.tableWidget().item(x, 1).text()))
                     pass
                 if y == 4:  # 移动
                     p = self.cursor().pos()
@@ -1622,13 +1631,13 @@ class Ui_Widget(QWidget):
                 if result is True:
                     self.set_table_item(self.search_list, self.handle.mes_list, '搜索')
                 else:
-                    self.mes = Ui_mesbox(result)
+                    # self.mes = Ui_mesbox(result)
                     self.printt(result)
             else:
                 if self.type_seach.currentIndex() == 4:
                     self.printt('正在下载全名K歌')
                     gm.judgeurl(self.search.text())
-                    self.mes = Ui_mesbox('下载完成')
+                    # self.mes = Ui_mesbox('下载完成')
                     self.printt('全民K歌下载完成')
                 else:
                     rr = self.handle2.jxsong(self.type_seach.currentIndex() - 5, self.search.text())
@@ -1637,7 +1646,7 @@ class Ui_Widget(QWidget):
                         self.handle.mes_list += self.handle2.list
                         self.set_table_item(self.search_list, self.handle2.list, '搜索')
                     else:
-                        self.mes = Ui_mesbox(rr)
+                        # self.mes = Ui_mesbox(rr)
                         self.printt(rr)
         except Exception as e:
             self.printt(str(e))
@@ -1812,6 +1821,8 @@ class Ui_Widget(QWidget):
     # 状态栏更新
     def printt(self, text, time=5000):
         self.statusbar.showMessage(text, time)
+        with open(gm.st.path_log, 'a', encoding='utf-8')as f:
+            f.write(gm.time.strftime("%Y-%m-%d %H:%M:%S", gm.time.localtime()) + " : " + text + "\n")
 
     def mousePressEvent(self, event: QtGui.QMouseEvent):
         self.mouse_left = False
@@ -1870,6 +1881,7 @@ class Ui_Widget(QWidget):
         else:
             gm.st.path = gm.st.path_exe + '/music'
         gm.st.path_txt = gm.st.path_exe + '/日志.txt'
+        gm.st.path_log = gm.st.path_exe + '/log.txt'
         gm.st.path_temp = gm.st.path_exe + '/temp'
         gm.st.path_json = gm.st.path_exe + '/json'
         gm.st.path_song = gm.st.path_json + '/song_list'
@@ -1957,12 +1969,14 @@ class Ui_Widget(QWidget):
     # 手动清除缓存
     def cleartemp(self):
         fs.delete_path(gm.st.path_temp)
+        if fs.os.path.exists(gm.st.path_json + '/play_list.json'):
+            fs.delete_file(gm.st.path_json + '/play_list.json')
         self.printt('清除缓存成功')
 
     # 保存过滤器
     def savefilter1(self):
         if re.match(re.compile(r'\.(.*)'), self.addfilter.text()) is None:
-            self.mes=Ui_mesbox('格式错误，正确格式:.mp3')
+            # self.mes=Ui_mesbox('格式错误，正确格式:.mp3')
             self.printt('格式错误，正确格式:.mp3')
             return
         self.addfilter.hide()

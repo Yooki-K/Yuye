@@ -5,20 +5,45 @@ import random
 import re
 import time
 from urllib.parse import urlencode as uc
+from mutagen.id3 import ID3, APIC, TIT2, TPE1, TALB
 
 import requests
 from Crypto.Cipher import AES
 
 import setting as st
 
-url = "https://music.liuzhijin.cn/"
+# url = "https://music.liuzhijin.cn/"
+url = "http://www.dspjx.com/music/index.php"
 heard = {
     'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66'
 }
 type_llist = ['netease', 'qq', 'kugou', 'xiami']
 
 
-def find_type(link) -> str:
+# 修改tag
+def updateInfo(mp3file, info):
+    songFile = ID3(mp3file)
+    result = requests.get(info[4], heard)
+    if result.status_code == 200:
+        songFile['APIC'] = APIC(  # 插入封面
+            encoding=3,
+            mime='image/jpeg',
+            type=3,
+            desc=u'Cover',
+            data=result.content
+        )
+    songFile['TIT2'] = TIT2(  # 插入歌名
+        encoding=3,
+        text=info[0]
+    )
+    songFile['TPE1'] = TPE1(  # 插入第一演奏家、歌手、等
+        encoding=3,
+        text=info[1]
+    )
+    songFile.save()
+
+
+def find_type(link) -> [str, None]:
     for x in st.filters:
         if x in link:
             return x
@@ -26,6 +51,7 @@ def find_type(link) -> str:
 
 
 def temp_song(filaname, url: list):
+    """return [path,lrc_path]"""
     if url[0] is not None:
         re = requests.get(url[0], headers=heard)
         s = find_type(re.url)
@@ -35,11 +61,11 @@ def temp_song(filaname, url: list):
         if url[1] is not None:
             if 'http' in url[1]:
                 re = requests.get(url[1], headers=heard)
-                newfile(st.path_temp + '\\' + filaname + '歌词.lrc', 'w',
+                newfile(st.path_temp + '\\' + filaname + '.lrc', 'w',
                         re.text.encode('UTF-8').decode('unicode_escape'), 'utf-8')
             else:
-                newfile(st.path_temp + '\\' + filaname + '歌词.lrc', 'w', url[1], 'utf-8')
-        return [st.path_temp + '\\' + filaname + s, st.path_temp + '\\' + filaname + '歌词.lrc']
+                newfile(st.path_temp + '\\' + filaname + '.lrc', 'w', url[1], 'utf-8')
+        return [st.path_temp + '\\' + filaname + s, st.path_temp + '\\' + filaname + '.lrc']
     else:
         return False
 
@@ -54,10 +80,10 @@ def down_song(filaname, url: list):
         if url[1] is not None:
             if 'http' in url[1]:
                 re = requests.get(url[1], headers=heard)
-                newfile(st.path + '\\' + filaname + '歌词.lrc', 'w', re.text.encode('UTF-8').decode('unicode_escape'),
+                newfile(st.path + '\\' + filaname + '.lrc', 'w', re.text.encode('UTF-8').decode('unicode_escape'),
                         'utf-8')
             else:
-                newfile(st.path + '\\' + filaname + '歌词.lrc', 'w', url[1], 'utf-8')
+                newfile(st.path + '\\' + filaname + '.lrc', 'w', url[1], 'utf-8')
         newfile(st.path_txt, 'a',
                 time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " : 下载 " + filaname + '\n', 'UTF-8')
         return True
@@ -246,18 +272,13 @@ class handle_music:
     def __init__(self):
         self.mes_list = []  # [x['title'], x['author'], x['url'], x['lrc'],x['pic']]
         self.hearder = {
-            'authority': 'music.liuzhijin.cn',
-            'method': 'POST',
-            'path': '/',
-            'scheme': 'https',
             'accept': 'application/json, text/javascript, */*; q=0.01',
             'accept-encoding': 'gzip, deflate, br',
             'accept-language': 'zh-CN,zh;q=0.9,en;q=0.8,en-GB;q=0.7,en-US;q=0.6',
             'content-type': 'application/x-www-form-urlencoded; charset=UTF-8',
-            'origin': 'https://music.liuzhijin.cn',
-            'sec-fetch-dest': 'empty',
-            'sec-fetch-mode': 'cors',
-            'sec-fetch-site': 'same-origin',
+            "Connection": "keep-alive",
+            # 'origin': 'https://music.liuzhijin.cn',
+            'origin': 'http://www.dspjx.com',
             'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) '
                           'Chrome/87.0.4280.88 Safari/537.36 Edg/87.0.664.66',
             'x-requested-with': 'XMLHttpRequest'
@@ -335,7 +356,7 @@ class handle_music:
             return False
         else:
             filename_song = st.path + '\\' + self.mes_list[index][0] + '-' + self.mes_list[index][1] + s
-            filename_lrc = st.path + '\\' + self.mes_list[index][0] + '-' + self.mes_list[index][1] + '歌词.lrc'
+            filename_lrc = st.path + '\\' + self.mes_list[index][0] + '-' + self.mes_list[index][1] + '.lrc'
             newfile(filename_lrc, 'w+', self.mes_list[index][3], encoding_='utf-8')
             newfile_no_encoding(filename_song, 'wb', r.content)
             if 'http' in self.mes_list[index][3]:
@@ -346,6 +367,7 @@ class handle_music:
             newfile(st.path_txt, 'a',
                     time.strftime("%Y-%m-%d %H:%M:%S", time.localtime()) + " : 下载 " + self.mes_list[index][
                         0] + '-' + self.mes_list[index][1] + '\n', 'utf-8')
+            updateInfo(filename_song, self.mes_list[index])
             return [filename_song, filename_lrc]
 
     # 网易云歌单解析歌单id

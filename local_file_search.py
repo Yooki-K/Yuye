@@ -92,10 +92,10 @@ def move_file(filename, disdir):
 
 
 # 判断文件是否存在
-def judge_file(filename: str, path: str):  # 不用带后缀名
+def judge_file(filename: str, path: str):  # 与后缀名无关
     file_list = os.listdir(path=path)
     for x in file_list:
-        if os.path.splitext(filename)[0] in x:
+        if filename in x:
             return os.path.join(path, x)
     return False
 
